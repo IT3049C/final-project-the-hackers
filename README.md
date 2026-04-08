@@ -1,5 +1,7 @@
 # GameHub
 
+## Jonathan Douglas and Moni Collins
+
 ## Checklist
 
 - [ ] frequent commits to github.
