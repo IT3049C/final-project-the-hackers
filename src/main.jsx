@@ -38,7 +38,7 @@ const WordleGame = () => {
 
   const submitGuess = () => {
     if (currentPosition < CONFIG.COLS) {
-      // Triggering shake logic would usually happen via a temporary state/class
+   
       setStatus("Too short!");
       return;
     }
@@ -84,10 +84,10 @@ const WordleGame = () => {
         {grid.map((row, rowIndex) => (
           <div key={rowIndex} className="row">
             {row.map((letter, colIndex) => {
-              // Logic for adding classes
+             
               let className = "letter";
               if (rowIndex < currentAttempt) {
-               
+          
                 className += letter.toLowerCase() === targetWord[colIndex] ? " correct" : "";
               }
               return (
