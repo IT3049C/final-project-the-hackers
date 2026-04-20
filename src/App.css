@@ -3,4 +3,45 @@
   margin: 0 auto;
   padding: 2rem;
   text-align: center;
+  margin-right: 10px;
+  border: none;
+  border-radius: 5px;
+}
+
+/* Button */
+button {
+  padding: 10px 15px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #538d4e;
+  color: white;
+}
+
+/* Results container */
+div {
+  margin-top: 20px;
+}
+
+/* Result text */
+span {
+  display: inline-block;
+  margin: 5px;
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #3a3a3c;
+}
+
+/* Optional colors if you upgrade later */
+.correct {
+  background-color: #538d4e; /* green */
+}
+
+.misplaced {
+  background-color: #b59f3b; /* yellow */
+}
+
+.incorrect {
+  background-color: #3a3a3c; /* gray */
 }
