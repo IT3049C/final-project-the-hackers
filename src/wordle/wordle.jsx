@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+export const possibleWords = ["apple", "world", "words", "return"];
 
 export const randomIndex = Math.floor(Math.random() * possibleWords.length);
 
