@@ -7,7 +7,7 @@ const CONFIG = {
 };
 
 const WordleGame = () => {
-  // Initialize a 6x5 grid filled with empty strings
+
   const [grid, setGrid] = useState(
     Array(CONFIG.ROWS).fill().map(() => Array(CONFIG.COLS).fill(""))
   );
@@ -87,7 +87,7 @@ const WordleGame = () => {
               // Logic for adding classes
               let className = "letter";
               if (rowIndex < currentAttempt) {
-                // Add "correct" or "absent" logic here based on targetWord
+               
                 className += letter.toLowerCase() === targetWord[colIndex] ? " correct" : "";
               }
               return (
