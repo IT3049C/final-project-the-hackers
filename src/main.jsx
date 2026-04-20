@@ -7,7 +7,7 @@ const CONFIG = {
 };
 
 const WordleGame = () => {
-
+  
   const [grid, setGrid] = useState(
     Array(CONFIG.ROWS).fill().map(() => Array(CONFIG.COLS).fill(""))
   );
@@ -38,7 +38,7 @@ const WordleGame = () => {
 
   const submitGuess = () => {
     if (currentPosition < CONFIG.COLS) {
-   
+      
       setStatus("Too short!");
       return;
     }
@@ -87,7 +87,7 @@ const WordleGame = () => {
              
               let className = "letter";
               if (rowIndex < currentAttempt) {
-          
+               
                 className += letter.toLowerCase() === targetWord[colIndex] ? " correct" : "";
               }
               return (
