@@ -1,7 +1,5 @@
-
-export const possibleWords = ["apple", "world", "words", "return"];
-
-export const randomIndex = Math.floor(Math.random() * possibleWords.length);
+import React, { useState } from "react";
+import { checkGuess } from "./word";
 
 export default function Wordle() {
   const [guess, setGuess] = useState("");
