@@ -3,39 +3,44 @@ export const possibleWords = ["apple", "world", "words", "return"];
 
 export const randomIndex = Math.floor(Math.random() * possibleWords.length);
 
-export const targetWord = possibleWords[randomIndex];
+export default function Wordle() {
+  const [guess, setGuess] = useState("");
+  const [result, setResult] = useState([]);
 
-export async function getRandomWord() {
-  const response = await fetch(
-    "https://random-word-api.herokuapp.com/word?length=5"
-  );
-  const data = await response.json();
-  return data[0];
-}
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
+    const res = checkGuess(guess);
 
-function isValidWord(word) {
-  return possibleWords.includes(word);
-}
-
-
-export function checkGuess(guess) {
-  const isValid = isValidWord(guess.toLowerCase());
-
-  if (!isValid) {
-    return null;
-  }
-
-  const targetLetters = targetWord.toLowerCase().split("");
-  const guessLetters = guess.toLowerCase().split("");
-
-  return guessLetters.map((letter, index) => {
-    if (letter === targetLetters[index]) {
-      return "correct";
-    } else if (targetLetters.includes(letter)) {
-      return "misplaced";
-    } else {
-      return "incorrect";
+    if (!res) {
+      alert("Invalid word");
+      return;
     }
-  });
+
+    setResult(res);
+  };
+
+  return (
+    <div>
+      <h1>Wordle</h1>
+
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          value={guess}
+          onChange={(e) => setGuess(e.target.value)}
+          maxLength={5}
+        />
+        <button type="submit">Guess</button>
+      </form>
+
+      <div>
+        {result.map((r, index) => (
+          <span key={index} style={{ margin: "5px" }}>
+            {r}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
