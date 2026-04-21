@@ -1,44 +1,103 @@
-import React, { useState } from "react";
-import { checkGuess } from "./word";
+import { useEffect, useState } from "react";
+import { targetWord } from "./game";
+import "./App.css";
+
+const config = {
+  cols: 5,
+  rows: 6,
+  wordLength: 5,
+};
 
 export default function Wordle() {
-  const [guess, setGuess] = useState("");
-  const [result, setResult] = useState([]);
+  const [grid, setGrid] = useState(
+    Array(config.rows)
+      .fill("")
+      .map(() => Array(config.cols).fill(""))
+  );
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const [currentAttempt, setCurrentAttempt] = useState(0);
+  const [currentPosition, setCurrentPosition] = useState(0);
+  const [gameOver, setGameOver] = useState(false);
 
-    const res = checkGuess(guess);
+  function isLetter(letter) {
+    return letter.length === 1 && /[a-z]/i.test(letter);
+  }
 
-    if (!res) {
-      alert("Invalid word");
+  function addLetter(letter) {
+    if (currentPosition < config.wordLength) {
+      const newGrid = [...grid];
+      newGrid[currentAttempt][currentPosition] = letter;
+      setGrid(newGrid);
+      setCurrentPosition(currentPosition + 1);
+    }
+  }
+
+  function removeLetter() {
+    if (currentPosition > 0) {
+      const newGrid = [...grid];
+      newGrid[currentAttempt][currentPosition - 1] = "";
+      setGrid(newGrid);
+      setCurrentPosition(currentPosition - 1);
+    }
+  }
+
+  function submitGuess() {
+    if (currentPosition < config.wordLength) {
       return;
     }
 
-    setResult(res);
-  };
+    const guess = grid[currentAttempt].join("").toLowerCase();
+    const word = targetWord.toLowerCase();
+
+    if (guess === word) {
+      alert("You Win!");
+      setGameOver(true);
+      return;
+    }
+
+    const nextAttempt = currentAttempt + 1;
+    if (nextAttempt === config.rows) {
+      setGameOver(true);
+    }
+
+    setCurrentAttempt(nextAttempt);
+    setCurrentPosition(0);
+  }
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (gameOver) return;
+
+      if (isLetter(e.key)) {
+        addLetter(e.key);
+      } else if (e.key === "Backspace") {
+        removeLetter();
+      } else if (e.key === "Enter") {
+        submitGuess();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
 
   return (
     <div>
       <h1>Wordle</h1>
 
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={guess}
-          onChange={(e) => setGuess(e.target.value)}
-          maxLength={5}
-        />
-        <button type="submit">Guess</button>
-      </form>
-
-      <div>
-        {result.map((r, index) => (
-          <span key={index} style={{ margin: "5px" }}>
-            {r}
-          </span>
+      <div id="wordle-grid">
+        {grid.map((row, rowIndex) => (
+          <div key={rowIndex} className="row">
+            {row.map((cell, colIndex) => (
+              <div key={colIndex} className="letter">
+                {cell}
+              </div>
+            ))}
+          </div>
         ))}
       </div>
+
+      {gameOver && <h2>Game Over!</h2>}
     </div>
   );
 }
