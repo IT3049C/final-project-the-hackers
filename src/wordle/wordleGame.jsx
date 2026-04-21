@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
+export const targetWord = "APPLE";
 
 const CONFIG = {
   COLS: 5,
@@ -105,5 +106,7 @@ const WordleGame = () => {
     </div>
   );
 };
+
+
 
 export default WordleGame;
