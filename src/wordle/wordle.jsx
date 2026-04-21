@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { targetWord } from "./game";
+import { targetWord } from "./wordleGame";
 import "./App.css";
 
 const config = {
