@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { getRandomWord } from "./words";
-import "./Hangman.css";
+import "./hangman.css";
 
 export default function Hangman({ onExit }) {
   const [word, setWord] = useState(getRandomWord);
