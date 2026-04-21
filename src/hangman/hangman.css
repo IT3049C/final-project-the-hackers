@@ -1,0 +1,82 @@
+/*Gallows*/
+.hangman-drawing {
+  position: relative;
+  width: 250px;
+  height: 250px;
+}
+
+.bar-bottom {
+    height:10px;
+    width: 150px;
+    background: black;
+}
+
+.bar-up{
+    height: 250px;
+    width: 10px;
+    background: black;
+    margin-left:70px;
+}
+
+.bar-top {
+    height: 10px;
+    width: 100px;
+    background: black;
+    margin-left:70px;
+    position: absolute;
+    top: 0;
+}
+
+.rope {
+    height: 50px;
+    width: 10px;
+    background: black;
+    position: absolute;
+    top: 0px;
+    right:30px;
+}
+
+/*body parts*/
+
+.head {
+    height: 50px;
+    width: 50px;
+    border-radius: 100%;
+    border: 10px solid black;
+    position: absolute;
+    top: 50px;
+    right:0px;
+}
+
+.body-line {
+    width: 10px;
+    height: 100px;
+    background: black;
+    position: absolute;
+    top: 130px;
+    right: -30px;
+    rotate: -30deg;
+    transform-origin: left bottom;
+}
+
+.left-arm {
+    width: 60px;
+    height: 10px;
+    background: black;
+    position: absolute;
+    top: 190px;
+    right: -20px;
+    rotate: 60deg;
+    transform-origin: left bottom;
+}
+
+.left-leg {
+    width: 60px;
+    height: 10px;
+    background: black;
+    position: absolute;
+    top: 190px;
+    right: 30px;
+    rotate: -60deg;
+    transform-origin: right bottom;
+}
