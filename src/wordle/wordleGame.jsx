@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { targetWord } from "./game";
+
 
 const CONFIG = {
   COLS: 5,
   ROWS: 6,
 };
+
+const targetWord = "REACT";
 
 const WordleGame = () => {
   
