@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { targetWord } from "./wordleGame";
-import "./App.css";
+import "../App.css";
 
 const config = {
   cols: 5,

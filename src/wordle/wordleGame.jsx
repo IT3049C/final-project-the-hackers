@@ -7,8 +7,6 @@ const CONFIG = {
   ROWS: 6,
 };
 
-const targetWord = "REACT";
-
 const WordleGame = () => {
   
   const [grid, setGrid] = useState(
@@ -87,10 +85,8 @@ const WordleGame = () => {
         {grid.map((row, rowIndex) => (
           <div key={rowIndex} className="row">
             {row.map((letter, colIndex) => {
-             
               let className = "letter";
               if (rowIndex < currentAttempt) {
-               
                 className += letter.toLowerCase() === targetWord[colIndex] ? " correct" : "";
               }
               return (
