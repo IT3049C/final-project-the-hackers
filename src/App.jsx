@@ -18,7 +18,7 @@ function App() {
     return (
       <div className="app-container lobby">
         <h1>Welcome to GameHub</h1>
-        <p>Developed by: [Jonathan Douglas and Moni Collins]</p>
+        <p>Developed by: Jonathan Douglas and Moni Collins</p>
         <div className="name-capture">
           <label htmlFor="playerName">Enter Player Name:</label>
           <input
