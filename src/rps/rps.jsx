@@ -1,219 +1,269 @@
 import React, { useState, useEffect } from "react";
 import "./rps.css";
 
-// Sample avatars you can use
-const AVATARS = [
-  "https://api.dicebear.com/7.x/bottts/svg?seed=1",
-  "https://api.dicebear.com/7.x/bottts/svg?seed=2",
-  "https://api.dicebear.com/7.x/bottts/svg?seed=3",
-];
+const API_BASE_URL = "https://game-room-api.fly.dev";
 
-const MOVES = ["rock", "paper", "scissors"];
+export default function RockPaperScissors({ playerName, onExit }) {
+  const [gameState, setGameState] = useState("lobby"); // lobby, waiting, playing, result
+  const [roomCode, setRoomCode] = useState("");
+  const [joinCode, setJoinCode] = useState("");
+  const [role, setRole] = useState(null); // 'p1' (creator) or 'p2' (joiner)
 
-export default function RockPaperScissors({ onExit }) {
-  // Game States
-  const [gameState, setGameState] = useState("settings"); // 'settings' or 'game'
-  const [settings, setSettings] = useState({
-    name: "",
-    avatar: "",
-    difficulty: "normal",
-  });
-  const [score, setScore] = useState({ player: 0, cpu: 0, ties: 0 });
-  const [history, setHistory] = useState([]);
-  const [lastPlayerMove, setLastPlayerMove] = useState(null);
-  const [highscores, setHighscores] = useState([]);
+  // Local copy of the shared API state
+  const [remoteState, setRemoteState] = useState(null);
 
-  // Load highscores on mount
-  useEffect(() => {
-    const savedScores = JSON.parse(
-      localStorage.getItem("game.highscores") || "[]",
-    );
-    setHighscores(savedScores);
-  }, []);
+  // --- 1. CREATE A ROOM ---
+  const createRoom = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/rooms`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          initialState: {
+            p1Name: playerName,
+            p2Name: null,
+            p1Move: null,
+            p2Move: null,
+            round: 1,
+          },
+        }),
+      });
+      const data = await res.json();
+      setRoomCode(data.roomId);
+      setRole("p1");
+      setGameState("waiting"); // Wait for P2
+    } catch (err) {
+      console.error("Error creating room:", err);
+      alert("Failed to create room. Is the server running?");
+    }
+  };
 
-  const handleStartGame = (e) => {
+  // --- 2. JOIN A ROOM ---
+  const joinRoom = async (e) => {
     e.preventDefault();
-    if (settings.name && settings.avatar) setGameState("game");
-  };
+    try {
+      // Get current room state first
+      const res = await fetch(`${API_BASE_URL}/api/rooms/${joinCode}`);
+      if (!res.ok) throw new Error("Room not found");
+      const data = await res.json();
 
-  const decideWinner = (player, cpu) => {
-    if (player === cpu) return "tie";
-    if (
-      (player === "rock" && cpu === "scissors") ||
-      (player === "scissors" && cpu === "paper") ||
-      (player === "paper" && cpu === "rock")
-    ) {
-      return "player";
+      // Update the room to add Player 2
+      await fetch(`${API_BASE_URL}/api/rooms/${joinCode}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          gameState: {
+            ...data.gameState,
+            p2Name: playerName,
+          },
+        }),
+      });
+
+      setRoomCode(joinCode);
+      setRole("p2");
+      setGameState("playing");
+    } catch (err) {
+      console.error("Error joining room:", err);
+      alert("Failed to join. Check the room code.");
     }
-    return "cpu";
   };
 
-  const getCpuMove = () => {
-    if (settings.difficulty === "hard" && lastPlayerMove) {
-      // 60% chance to counter the player's last move on hard
-      if (Math.random() < 0.6) {
-        if (lastPlayerMove === "rock") return "paper";
-        if (lastPlayerMove === "paper") return "scissors";
-        if (lastPlayerMove === "scissors") return "rock";
+  // --- 3. POLLING (Check server every 2 seconds) ---
+  useEffect(() => {
+    if (!roomCode) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/rooms/${roomCode}`);
+        const data = await res.json();
+        const currentState = data.gameState;
+        setRemoteState(currentState);
+
+        // Transition P1 from waiting to playing when P2 joins
+        if (role === "p1" && currentState.p2Name && gameState === "waiting") {
+          setGameState("playing");
+        }
+
+        // Transition to results if both players have moved
+        if (
+          currentState.p1Move &&
+          currentState.p2Move &&
+          gameState === "playing"
+        ) {
+          setGameState("result");
+        }
+
+        // Transition back to playing if someone clicked "Play Again" (moves cleared)
+        if (
+          !currentState.p1Move &&
+          !currentState.p2Move &&
+          gameState === "result"
+        ) {
+          setGameState("playing");
+        }
+      } catch (err) {
+        console.error("Polling error:", err);
       }
-    }
-    // Otherwise, random move
-    return MOVES[Math.floor(Math.random() * MOVES.length)];
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [roomCode, role, gameState]);
+
+  // --- 4. MAKE A MOVE ---
+  const makeMove = async (move) => {
+    // We must fetch the absolute latest state so we don't accidentally erase P2's move if they just played
+    const res = await fetch(`${API_BASE_URL}/api/rooms/${roomCode}`);
+    const data = await res.json();
+    const currentState = data.gameState;
+
+    // Apply my move
+    const updatedState = { ...currentState };
+    if (role === "p1") updatedState.p1Move = move;
+    if (role === "p2") updatedState.p2Move = move;
+
+    // Send to server
+    await fetch(`${API_BASE_URL}/api/rooms/${roomCode}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ gameState: updatedState }),
+    });
+
+    // Optimistically update local UI to feel faster
+    setRemoteState(updatedState);
   };
 
-  const playRound = (playerMove) => {
-    const cpuMove = getCpuMove();
-    const winner = decideWinner(playerMove, cpuMove);
+  // --- 5. RESET ROUND ---
+  const playAgain = async () => {
+    const res = await fetch(`${API_BASE_URL}/api/rooms/${roomCode}`);
+    const data = await res.json();
 
-    setLastPlayerMove(playerMove);
-
-    const outcomeText =
-      winner === "tie"
-        ? "It's a tie!"
-        : winner === "player"
-          ? "You win!"
-          : "CPU wins!";
-    setHistory((prev) => [
-      `${settings.name} (${playerMove}) vs CPU (${cpuMove}) — ${outcomeText}`,
-      ...prev,
-    ]);
-
-    setScore((prev) => ({
-      ...prev,
-      [winner === "tie" ? "ties" : winner]:
-        prev[winner === "tie" ? "ties" : winner] + 1,
-    }));
+    // Clear moves and increment round
+    await fetch(`${API_BASE_URL}/api/rooms/${roomCode}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        gameState: {
+          ...data.gameState,
+          p1Move: null,
+          p2Move: null,
+          round: data.gameState.round + 1,
+        },
+      }),
+    });
   };
 
-  const saveHighscoreAndExit = () => {
-    // Only save if they actually played a round
-    if (score.player > 0 || score.cpu > 0 || score.ties > 0) {
-      const newScore = {
-        name: settings.name,
-        stats: `W:${score.player} L:${score.cpu} T:${score.ties}`,
-        date: new Date().toLocaleDateString(),
-      };
-      const newHighscores = [newScore, ...highscores].slice(0, 5); // Keep top 5
-      localStorage.setItem("game.highscores", JSON.stringify(newHighscores));
-    }
-    onExit(); // Return to lobby
+  // --- HELPER LOGIC ---
+  const getWinnerMessage = () => {
+    if (!remoteState || !remoteState.p1Move || !remoteState.p2Move) return "";
+    const p1 = remoteState.p1Move;
+    const p2 = remoteState.p2Move;
+
+    if (p1 === p2) return "It's a Tie!";
+
+    const p1Wins =
+      (p1 === "rock" && p2 === "scissors") ||
+      (p1 === "paper" && p2 === "rock") ||
+      (p1 === "scissors" && p2 === "paper");
+
+    if (role === "p1") return p1Wins ? "You Win!" : "You Lose!";
+    if (role === "p2") return !p1Wins ? "You Win!" : "You Lose!";
   };
 
-  // --- SETTINGS VIEW ---
-  if (gameState === "settings") {
-    return (
-      <div className="rps-container">
-        <button className="exit-btn" onClick={onExit}>
-          ← Back to Lobby
-        </button>
-        <h2>Rock Paper Scissors Setup</h2>
+  const myMove = remoteState
+    ? role === "p1"
+      ? remoteState.p1Move
+      : remoteState.p2Move
+    : null;
+  const opponentName = remoteState
+    ? role === "p1"
+      ? remoteState.p2Name
+      : remoteState.p1Name
+    : "...";
 
-        <form onSubmit={handleStartGame} className="settings-form">
-          <input
-            type="text"
-            placeholder="Enter your Name"
-            required
-            value={settings.name}
-            onChange={(e) => setSettings({ ...settings, name: e.target.value })}
-          />
-
-          <div className="avatar-selection">
-            <p>Select an Avatar:</p>
-            <div className="avatars">
-              {AVATARS.map((url, i) => (
-                <img
-                  key={i}
-                  src={url}
-                  alt="avatar"
-                  className={settings.avatar === url ? "selected" : ""}
-                  onClick={() => setSettings({ ...settings, avatar: url })}
-                />
-              ))}
-            </div>
-          </div>
-
-          <div className="difficulty-selection">
-            <p>Difficulty:</p>
-            <select
-              value={settings.difficulty}
-              onChange={(e) =>
-                setSettings({ ...settings, difficulty: e.target.value })
-              }
-            >
-              <option value="easy">Easy (Random)</option>
-              <option value="normal">Normal (Random)</option>
-              <option value="hard">Hard (Counters you)</option>
-            </select>
-          </div>
-
-          <button type="submit" disabled={!settings.name || !settings.avatar}>
-            Start Game
-          </button>
-        </form>
-
-        {highscores.length > 0 && (
-          <div className="highscores-preview">
-            <h3>Recent Scores</h3>
-            <ul>
-              {highscores.map((s, i) => (
-                <li key={i}>
-                  {s.name} - {s.stats} ({s.date})
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  // --- GAME VIEW ---
   return (
     <div className="rps-container">
-      <button className="exit-btn" onClick={saveHighscoreAndExit}>
-        ← Save & Exit
+      <button className="exit-btn" onClick={onExit}>
+        ← Back to Hub
       </button>
+      <h2>Multiplayer RPS</h2>
 
-      <div className="game-header">
-        <img src={settings.avatar} alt="avatar" />
-        <h2>{settings.name}</h2>
-        <span className="diff-badge">{settings.difficulty.toUpperCase()}</span>
-      </div>
-
-      <div className="scoreboard">
-        <div className="score-box">
-          Player
-          <br />
-          <strong>{score.player}</strong>
+      {gameState === "lobby" && (
+        <div className="multiplayer-lobby">
+          <button className="primary-btn" onClick={createRoom}>
+            Create New Room
+          </button>
+          <p>OR</p>
+          <form
+            onSubmit={joinRoom}
+            style={{ display: "flex", gap: "10px", justifyContent: "center" }}
+          >
+            <input
+              type="text"
+              placeholder="Enter Room Code"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              required
+            />
+            <button type="submit">Join Room</button>
+          </form>
         </div>
-        <div className="score-box">
-          Ties
-          <br />
-          <strong>{score.ties}</strong>
-        </div>
-        <div className="score-box">
-          CPU
-          <br />
-          <strong>{score.cpu}</strong>
-        </div>
-      </div>
+      )}
 
-      <div className="move-buttons">
-        <button onClick={() => playRound("rock")}>🪨 Rock</button>
-        <button onClick={() => playRound("paper")}>📄 Paper</button>
-        <button onClick={() => playRound("scissors")}>✂️ Scissors</button>
-      </div>
+      {gameState === "waiting" && (
+        <div className="waiting-screen">
+          <h3>
+            Room Code: <strong>{roomCode}</strong>
+          </h3>
+          <p>Give this code to your friend.</p>
+          <p>Waiting for opponent to join...</p>
+        </div>
+      )}
 
-      <div className="history">
-        <h3>Match History</h3>
-        <ul>
-          {history.length === 0 ? (
-            <li>Make your first move!</li>
-          ) : (
-            history.map((line, i) => <li key={i}>{line}</li>)
+      {gameState === "playing" && remoteState && (
+        <div className="playing-screen">
+          <h3>Round {remoteState.round}</h3>
+          <p>
+            Playing against: <strong>{opponentName}</strong>
+          </p>
+
+          <div className="move-buttons">
+            <button onClick={() => makeMove("rock")} disabled={myMove}>
+              🪨 Rock
+            </button>
+            <button onClick={() => makeMove("paper")} disabled={myMove}>
+              📄 Paper
+            </button>
+            <button onClick={() => makeMove("scissors")} disabled={myMove}>
+              ✂️ Scissors
+            </button>
+          </div>
+
+          {myMove && (
+            <p className="waiting-text">
+              Move locked in! Waiting for {opponentName}...
+            </p>
           )}
-        </ul>
-      </div>
+        </div>
+      )}
+
+      {gameState === "result" && remoteState && (
+        <div className="result-screen">
+          <h2 className="result-text">{getWinnerMessage()}</h2>
+          <div className="results-grid">
+            <div className="result-card">
+              <p>{remoteState.p1Name} played:</p>
+              <h3>{remoteState.p1Move.toUpperCase()}</h3>
+            </div>
+            <div className="result-card">
+              <p>{remoteState.p2Name} played:</p>
+              <h3>{remoteState.p2Move.toUpperCase()}</h3>
+            </div>
+          </div>
+          <button className="primary-btn" onClick={playAgain}>
+            Play Next Round
+          </button>
+        </div>
+      )}
     </div>
   );
 }
