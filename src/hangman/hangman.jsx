@@ -6,8 +6,8 @@ import "./hangman.css";
 const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
 export default function Hangman({ onExit }) {
-  // Ensure the word is uppercase to match the keyboard letters
-  const [word, setWord] = useState(getRandomWord().toUpperCase());
+  // Convert word to uppercase to match the ALPHABET buttons
+  const [word, setWord] = useState(() => getRandomWord().toUpperCase());
   const [guessedLetters, setGuessedLetters] = useState([]);
 
   const mistakes = guessedLetters.filter((l) => !word.includes(l)).length;
@@ -42,24 +42,34 @@ export default function Hangman({ onExit }) {
         ))}
       </div>
 
-      <div className="keyboard">
-        {ALPHABET.map((letter) => (
-          <button
-            key={letter}
-            className="key-btn"
-            disabled={guessedLetters.includes(letter) || isWinner || isLoser}
-            onClick={() => handleGuess(letter)}
-          >
-            {letter}
-          </button>
-        ))}
-      </div>
+      <Keyboard
+        guessedLetters={guessedLetters}
+        onSelect={handleGuess}
+        disabled={isWinner || isLoser}
+      />
 
       {(isWinner || isLoser) && (
         <button className="reset-btn" onClick={resetGame}>
           Play Again
         </button>
       )}
+    </div>
+  );
+}
+
+function Keyboard({ guessedLetters, onSelect, disabled }) {
+  return (
+    <div className="keyboard">
+      {ALPHABET.map((letter) => (
+        <button
+          key={letter}
+          className="key-btn"
+          disabled={guessedLetters.includes(letter) || disabled}
+          onClick={() => onSelect(letter)}
+        >
+          {letter}
+        </button>
+      ))}
     </div>
   );
 }

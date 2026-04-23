@@ -1,7 +1,7 @@
 import React from "react";
 import "./hangman.css";
 
-const BODY_PARTS = [
+const bodyParts = [
   <div key="head" className="head"></div>,
   <div key="body" className="body-line"></div>,
   <div key="leftArm" className="left-arm"></div>,
@@ -17,7 +17,8 @@ export function HangmanDrawing({ mistakes }) {
       <div className="bar-top" />
       <div className="bar-up" />
       <div className="bar-bottom" />
-      {BODY_PARTS.slice(0, mistakes)}
+      {/* Slices the array to render parts based on wrong guess count */}
+      {bodyParts.slice(0, mistakes)}
     </div>
   );
 }
