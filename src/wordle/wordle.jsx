@@ -1,103 +1,106 @@
-import { useEffect, useState } from "react";
-import { targetWord } from "./wordleGame";
-import "../App.css";
+import { useState, useEffect } from "react";
+import "./wordle.css";
 
-const config = {
-  cols: 5,
-  rows: 6,
-  wordLength: 5,
-};
+const WORD_LENGTH = 5;
+const MAX_GUESSES = 6;
+
+// You can replace this with any word you want
+const ANSWER = "APPLE";
 
 export default function Wordle() {
-  const [grid, setGrid] = useState(
-    Array(config.rows)
-      .fill("")
-      .map(() => Array(config.cols).fill(""))
-  );
-
-  const [currentAttempt, setCurrentAttempt] = useState(0);
-  const [currentPosition, setCurrentPosition] = useState(0);
+  const [guesses, setGuesses] = useState([]);
+  const [currentGuess, setCurrentGuess] = useState("");
   const [gameOver, setGameOver] = useState(false);
+  const [message, setMessage] = useState("");
 
-  function isLetter(letter) {
-    return letter.length === 1 && /[a-z]/i.test(letter);
-  }
+  function handleKeyPress(e) {
+    if (gameOver) return;
 
-  function addLetter(letter) {
-    if (currentPosition < config.wordLength) {
-      const newGrid = [...grid];
-      newGrid[currentAttempt][currentPosition] = letter;
-      setGrid(newGrid);
-      setCurrentPosition(currentPosition + 1);
-    }
-  }
+    const key = e.key.toUpperCase();
 
-  function removeLetter() {
-    if (currentPosition > 0) {
-      const newGrid = [...grid];
-      newGrid[currentAttempt][currentPosition - 1] = "";
-      setGrid(newGrid);
-      setCurrentPosition(currentPosition - 1);
-    }
-  }
-
-  function submitGuess() {
-    if (currentPosition < config.wordLength) {
-      return;
+    if (/^[A-Z]$/.test(key) && currentGuess.length < WORD_LENGTH) {
+      setCurrentGuess((prev) => prev + key);
     }
 
-    const guess = grid[currentAttempt].join("").toLowerCase();
-    const word = targetWord.toLowerCase();
-
-    if (guess === word) {
-      alert("You Win!");
-      setGameOver(true);
-      return;
+    if (key === "BACKSPACE") {
+      setCurrentGuess((prev) => prev.slice(0, -1));
     }
 
-    const nextAttempt = currentAttempt + 1;
-    if (nextAttempt === config.rows) {
-      setGameOver(true);
-    }
+    if (key === "ENTER") {
+      if (currentGuess.length !== WORD_LENGTH) {
+        setMessage("Not enough letters");
+        return;
+      }
 
-    setCurrentAttempt(nextAttempt);
-    setCurrentPosition(0);
+      const newGuesses = [...guesses, currentGuess];
+      setGuesses(newGuesses);
+      setCurrentGuess("");
+
+      if (currentGuess === ANSWER) {
+        setMessage("You win!");
+        setGameOver(true);
+      } else if (newGuesses.length === MAX_GUESSES) {
+        setMessage(`You lost. Answer: ${ANSWER}`);
+        setGameOver(true);
+      }
+    }
   }
 
   useEffect(() => {
-    function handleKeyDown(e) {
-      if (gameOver) return;
-
-      if (isLetter(e.key)) {
-        addLetter(e.key);
-      } else if (e.key === "Backspace") {
-        removeLetter();
-      } else if (e.key === "Enter") {
-        submitGuess();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
   });
 
-  return (
-    <div>
-      <h1>Wordle</h1>
+  function getTileColor(letter, index) {
+    if (!ANSWER.includes(letter)) return "gray";
+    if (ANSWER[index] === letter) return "green";
+    return "yellow";
+  }
 
-      <div id="wordle-grid">
-        {grid.map((row, rowIndex) => (
-          <div key={rowIndex} className="row">
-            {row.map((cell, colIndex) => (
-              <div key={colIndex} className="letter">
-                {cell}
-              </div>
-            ))}
-          </div>
-        ))}
+  function resetGame() {
+    setGuesses([]);
+    setCurrentGuess("");
+    setGameOver(false);
+    setMessage("");
+  }
+
+  return (
+    <div className="wordle-container">
+      <h1>Wordle Clone</h1>
+
+      <div className="board">
+        {Array.from({ length: MAX_GUESSES }).map((_, rowIndex) => {
+          const guess = guesses[rowIndex] || "";
+          const isCurrent = rowIndex === guesses.length;
+
+          return (
+            <div className="row" key={rowIndex}>
+              {Array.from({ length: WORD_LENGTH }).map((_, colIndex) => {
+                const letter = isCurrent
+                  ? currentGuess[colIndex] || ""
+                  : guess[colIndex] || "";
+
+                const color =
+                  !isCurrent && guess
+                    ? getTileColor(letter, colIndex)
+                    : "empty";
+
+                return (
+                  <div className={`tile ${color}`} key={colIndex}>
+                    {letter}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })}
       </div>
 
-      {gameOver && <h2>Game Over!</h2>}
+      <p className="message">{message}</p>
+
+      <button className="reset-btn" onClick={resetGame}>
+        Reset
+      </button>
     </div>
   );
 }

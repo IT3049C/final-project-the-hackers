@@ -1,0 +1,72 @@
+.wordle-container {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    margin-top: 40px;
+}
+
+.board {
+    display: grid;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px auto;
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+}
+
+.tile {
+    width: 60px;
+    height: 60px;
+    border: 2px solid #444;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: black;
+}
+
+.tile.empty {
+    background: #fff;
+}
+
+.tile.gray {
+    background: #787c7e;
+    color: white;
+    border-color: #787c7e;
+}
+
+.tile.yellow {
+    background: #c9b458;
+    color: white;
+    border-color: #c9b458;
+}
+
+.tile.green {
+    background: #6aaa64;
+    color: white;
+    border-color: #6aaa64;
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 1.2rem;
+}
+
+.reset-btn {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    cursor: pointer;
+    background: #333;
+    color: white;
+    border: none;
+    border-radius: 8px;
+}
+
+.reset-btn:hover {
+    background: #555;
+}

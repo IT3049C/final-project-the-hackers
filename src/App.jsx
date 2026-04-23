@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./App.css";
 
-// 1. Import your game components
+// Import your game components
 import Hangman from "./hangman/hangman";
 import TicTacToe from "./tictactoe/tictactoe";
 import Wordle from "./wordle/wordle";
@@ -29,10 +29,8 @@ function App() {
         </div>
       ) : (
         <div className="game-wrapper">
-          {/* Hangman provides its own Exit button via the onExit prop */}
           {activeGame === "hangman" && <Hangman onExit={goToLobby} />}
 
-          {/* Tic Tac Toe and Wordle logic */}
           {activeGame === "tictactoe" && (
             <>
               <button className="exit-btn" onClick={goToLobby}>

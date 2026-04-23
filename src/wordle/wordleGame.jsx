@@ -103,6 +103,4 @@ const WordleGame = () => {
   );
 };
 
-
-
 export default WordleGame;
