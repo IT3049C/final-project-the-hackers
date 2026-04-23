@@ -1,0 +1,107 @@
+.rps-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #2a2a2a;
+    border-radius: 12px;
+    color: white;
+}
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.settings-form input,
+.settings-form select {
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.avatars {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.avatars img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 3px solid transparent;
+    background: white;
+}
+
+.avatars img.selected {
+    border-color: #646cff;
+}
+
+.game-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.game-header img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: white;
+}
+
+.diff-badge {
+    background: #646cff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+}
+
+.scoreboard {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+    padding: 15px;
+    background: #1a1a1a;
+    border-radius: 8px;
+}
+
+.score-box {
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.score-box strong {
+    font-size: 2rem;
+    color: #646cff;
+}
+
+.move-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.history {
+    background: #1a1a1a;
+    padding: 15px;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.history ul {
+    list-style: none;
+    padding: 0;
+}
+
+.history li {
+    padding: 8px 0;
+    border-bottom: 1px solid #333;
+}

@@ -5,6 +5,7 @@ import "./App.css";
 import Hangman from "./hangman/hangman";
 import TicTacToe from "./tictactoe/tictactoe";
 import Wordle from "./wordle/wordle";
+import RockPaperScissors from "./rps/rps"; // <-- ADD THIS
 
 function App() {
   const [activeGame, setActiveGame] = useState(null);
@@ -25,12 +26,19 @@ function App() {
               Play Tic Tac Toe
             </button>
             <button onClick={() => setActiveGame("wordle")}>Play Wordle</button>
+            <button onClick={() => setActiveGame("rps")}>
+              Play Rock Paper Scissors
+            </button>{" "}
+            {/* <-- ADD THIS */}
           </div>
         </div>
       ) : (
         <div className="game-wrapper">
           {activeGame === "hangman" && <Hangman onExit={goToLobby} />}
-
+          {activeGame === "rps" && (
+            <RockPaperScissors onExit={goToLobby} />
+          )}{" "}
+          {/* <-- ADD THIS */}
           {activeGame === "tictactoe" && (
             <>
               <button className="exit-btn" onClick={goToLobby}>
@@ -39,7 +47,6 @@ function App() {
               <TicTacToe />
             </>
           )}
-
           {activeGame === "wordle" && (
             <>
               <button className="exit-btn" onClick={goToLobby}>
